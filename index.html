@@ -614,7 +614,7 @@ function makeSceneDoodles(){
   }
 }
 /* ===== composite the real phone onto Saúl's on-screen phone (desktop) ===== */
-const SCENE={W:2752,H:1536, l:0.332, t:0.122, w:0.183, h:0.701}; // white-screen rect (fractions of the image)
+const SCENE={W:2752,H:1536, l:0.3307, t:0.1133, w:0.1871, h:0.7181}; // white-screen rect (fractions of the image)
 let sceneReady=false;
 function layoutScene(){
   const landscape = innerWidth>=1000 && (innerWidth/innerHeight)>=1.25; // scene only on wide landscape screens
@@ -625,8 +625,8 @@ function layoutScene(){
   const dW=SCENE.W*sc,dH=SCENE.H*sc,oX=(vw-dW)/2,oY=(vh-dH)/2;
   const rx=oX+SCENE.l*dW, ry=oY+SCENE.t*dH, rw=SCENE.w*dW, rh=SCENE.h*dH; // white-screen box in viewport px
   const cx=rx+rw/2, cy=ry+rh/2;                       // center of the screen rect
-  const BLEED=1.065;                                  // overscan so our phone fully covers the drawn white screen
-  const s=(rw*BLEED)/430;                             // scale our 430px-wide phone to fit + bleed
+  const BLEED=1.004;                                  // snug fit inside the drawn screen (no overflow)
+  const s=(rw*BLEED)/430;                             // scale our 430px-wide phone to fit
   phone.style.position='fixed';phone.style.left='0';phone.style.top='0';
   phone.style.width='430px';phone.style.height='920px';phone.style.transformOrigin='top left';
   phone.style.transform=`translate(${cx-215*s}px,${cy-460*s}px) scale(${s})`;
