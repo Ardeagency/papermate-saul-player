@@ -236,8 +236,8 @@ body.scene .ws-saul,body.scene .ws-bokeh,body.scene .ws-glow,body.scene .ws-dood
   background:#05060fcc;backdrop-filter:blur(6px);cursor:pointer;text-align:center;padding:30px;transition:opacity .5s}
 .gate.hide{opacity:0;pointer-events:none}
 .gate img{width:120px;filter:drop-shadow(0 12px 24px #0008);animation:bob 4s ease-in-out infinite}
-.gate .pill{display:flex;align-items:center;gap:10px;background:#fff;color:#0a1840;font-weight:700;padding:13px 26px;border-radius:40px;font-size:15px;box-shadow:0 14px 30px -8px var(--ac)}
-.gate small{opacity:.65;font-size:12px;max-width:230px;line-height:1.5}
+.gate .pill{display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#0a1840;font-weight:700;padding:13px clamp(18px,5vw,26px);border-radius:40px;font-size:clamp(14px,3.8vw,15px);box-shadow:0 14px 30px -8px var(--ac);max-width:90%;text-align:center}
+.gate small{opacity:.65;font-size:12px;max-width:min(260px,80vw);line-height:1.5}
 </style>
 </head>
 <body>
