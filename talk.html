@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Saúl habla · Paper Mate (prueba)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--pm-blue:#11467F;--pm-red:#e4002b}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{height:100%}
+body{font-family:'Poppins',sans-serif;color:#fff;min-height:100dvh;overflow:hidden;
+  background:radial-gradient(130% 110% at 50% -5%,#1b56b0,#11467F 42%,#0a2c63 74%,#061a3d 100%);
+  display:flex;flex-direction:column;align-items:center}
+
+/* floating doodles bg */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.bg .d{position:absolute;color:#fff;opacity:.08;animation:up linear infinite}
+@keyframes up{0%{transform:translateY(20px) rotate(0)}100%{transform:translateY(-110vh) rotate(var(--r))}}
+.bg .logos{position:absolute;inset:-20%;background-repeat:repeat;background-size:180px;opacity:.05;animation:slide 90s linear infinite}
+@keyframes slide{to{background-position:180px 0}}
+
+/* header */
+.top{position:relative;z-index:3;text-align:center;padding:20px 16px 4px}
+.top small{letter-spacing:3px;font-size:11px;opacity:.6;text-transform:uppercase}
+.top h1{font-family:'Baloo 2';font-size:24px;font-weight:800;margin-top:2px}
+.top a{position:absolute;left:16px;top:20px;color:#fff;opacity:.7;text-decoration:none;font-size:13px;font-weight:600}
+
+/* stage with Saúl */
+.stage{position:relative;z-index:2;flex:1;display:flex;align-items:center;justify-content:center;width:100%;min-height:0}
+.saul-wrap{position:relative;width:min(72vw,360px);aspect-ratio:1;transform-origin:50% 92%;will-change:transform}
+.halo{position:absolute;inset:-12% -12% -6% -12%;border-radius:50%;
+  background:radial-gradient(closest-side,#ffffff22,transparent 70%);filter:blur(8px);opacity:calc(.3 + var(--amp)*.7);transition:opacity .05s}
+.saul{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 24px 30px #00102e88);will-change:transform}
+.mouth{display:none}
+
+/* caption */
+.cap{position:relative;z-index:3;min-height:70px;max-width:min(92vw,640px);margin:0 auto 6px;
+  background:#ffffff14;border:1px solid #ffffff22;border-radius:18px;padding:14px 18px;text-align:center;
+  font-size:clamp(16px,2.4vw,21px);font-weight:600;line-height:1.35;backdrop-filter:blur(8px)}
+.cap.idle{opacity:.55;font-weight:500}
+
+/* controls */
+.ctrl{position:relative;z-index:3;display:flex;gap:14px;align-items:center;justify-content:center;padding:8px 0 6px}
+.ctrl button{border:none;cursor:pointer;font-family:inherit}
+.play{width:64px;height:64px;border-radius:50%;background:#fff;color:var(--pm-blue);display:grid;place-items:center;box-shadow:0 10px 26px -6px #1e63d6}
+.play svg{width:28px;height:28px}
+.nav{width:48px;height:48px;border-radius:50%;background:#ffffff1c;color:#fff;display:grid;place-items:center}
+.nav svg{width:22px;height:22px}
+
+/* track chips */
+.chips{position:relative;z-index:3;display:flex;gap:9px;overflow-x:auto;padding:10px 16px max(16px,env(safe-area-inset-bottom));width:100%;scrollbar-width:none;scroll-snap-type:x proximity}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;scroll-snap-align:center;display:flex;align-items:center;gap:8px;background:#ffffff14;border:1px solid #ffffff1f;
+  border-radius:30px;padding:7px 14px 7px 7px;font-size:13px;font-weight:600;color:#fff;white-space:nowrap;cursor:pointer;transition:.2s}
+.chip.on{background:#fff;color:var(--pm-blue)}
+.chip .n{width:26px;height:26px;border-radius:50%;background:#ffffff22;display:grid;place-items:center;font-size:12px}
+.chip.on .n{background:var(--pm-red);color:#fff}
+
+.hint{position:relative;z-index:3;font-size:11px;opacity:.45;text-align:center;padding-bottom:4px}
+</style>
+</head>
+<body>
+<div class="bg"><div class="logos" id="bgLogos"></div><div id="bgD"></div></div>
+
+<div class="top">
+  <a href="index.html">‹ Volver</a>
+  <small>Player Mate · prueba</small>
+  <h1>Saúl te habla 🦉</h1>
+</div>
+
+<div class="stage">
+  <div class="saul-wrap" id="wrap">
+    <div class="halo"></div>
+    <img class="saul" id="saul" src="assets/saul_pose1.png" alt="Saúl">
+    <div class="mouth" id="mouth"><div class="teeth"></div><div class="tongue"></div></div>
+  </div>
+</div>
+
+<div class="cap idle" id="cap">Toca play y Saúl dirá la frase 👇</div>
+
+<div class="ctrl">
+  <button class="nav" id="prev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5L9 12l11 7z"/></svg></button>
+  <button class="play" id="play"><svg viewBox="0 0 24 24" fill="currentColor" id="pico"><path d="M7 5v14l12-7z"/></svg></button>
+  <button class="nav" id="next"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5l11 7L4 19z"/></svg></button>
+</div>
+
+<div class="chips" id="chips"></div>
+<div class="hint">La boca se mueve según la voz · animación en vivo con Web Audio</div>
+
+<audio id="audio" preload="auto" crossorigin="anonymous"></audio>
+<script src="data.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const audio=$('#audio'),wrap=$('#wrap'),saul=$('#saul'),mouth=$('#mouth'),cap=$('#cap');
+const POSES=[1,2,5,7,3,6,4]; // front-ish poses to rotate
+let idx=0, actx=null, analyser=null, data=null, srcNode=null, raf=null, amp=0;
+
+/* build chips */
+const chips=$('#chips');
+TRACKS.forEach((t,i)=>{
+  const c=document.createElement('div');c.className='chip';c.dataset.i=i;
+  c.innerHTML=`<span class="n">${i+1}</span>${t.title}`;
+  c.onclick=()=>load(i,true);
+  chips.appendChild(c);
+});
+
+/* bg doodles */
+const DD=['<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.5-9.5-8.5C.5 9 2 5.5 5.2 5.5c2 0 3.3 1.3 3.8 2 .5-.7 1.8-2 3.8-2C16 5.5 17.5 9 15.5 12.5 13 16.5 12 21 12 21z"/></svg>','<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.6L22 9.3l-5 4.7 1.4 7L12 17.8 5.6 21l1.4-7-5-4.7 7.4-.7z"/></svg>','<svg width="30" height="14" viewBox="0 0 40 16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M3 8q6-8 10 0t10 0 10 0"/></svg>'];
+const bgD=$('#bgD');
+for(let k=0;k<14;k++){const d=document.createElement('div');d.className='d';d.innerHTML=DD[k%DD.length];
+  d.style.left=Math.random()*100+'%';d.style.bottom='-10%';d.style.setProperty('--r',(Math.random()*360-180)+'deg');
+  d.style.animationDuration=(14+Math.random()*12)+'s';d.style.animationDelay=(-Math.random()*20)+'s';
+  d.style.transform=`scale(${0.6+Math.random()})`;bgD.appendChild(d);}
+$('#bgLogos').style.backgroundImage='url(assets/papermate_logo_white.png)';
+
+function setPose(i){saul.src=`assets/saul_pose${POSES[i%POSES.length]}.png`;}
+
+function load(i,play){
+  idx=(i+TRACKS.length)%TRACKS.length;const t=TRACKS[idx];
+  audio.src=t.file;setPose(idx);
+  cap.textContent='«'+t.text+'»';cap.classList.remove('idle');
+  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',+c.dataset.i===idx));
+  const on=document.querySelector('.chip.on');if(on)on.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});
+  if(play)start();
+}
+
+function ensureAudioGraph(){
+  if(actx)return;
+  actx=new (window.AudioContext||window.webkitAudioContext)();
+  srcNode=actx.createMediaElementSource(audio);
+  analyser=actx.createAnalyser();analyser.fftSize=1024;analyser.smoothingTimeConstant=.65;
+  data=new Uint8Array(analyser.fftSize);
+  srcNode.connect(analyser);analyser.connect(actx.destination);
+}
+function start(){ensureAudioGraph();if(actx.state==='suspended')actx.resume();audio.play().catch(()=>{});}
+
+$('#play').onclick=()=>{if(audio.paused){if(!audio.src)load(0,false);start();}else audio.pause();};
+$('#next').onclick=()=>load(idx+1,true);
+$('#prev').onclick=()=>load(idx-1,true);
+audio.addEventListener('play',()=>{$('#pico').innerHTML='<rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/>';loop();});
+audio.addEventListener('pause',()=>{$('#pico').innerHTML='<path d="M7 5v14l12-7z"/>';});
+audio.addEventListener('ended',()=>load(idx+1,true));
+
+/* ===== live mouth modulation ===== */
+function loop(){
+  if(audio.paused){cancelAnimationFrame(raf);ease(0);return;}
+  analyser.getByteTimeDomainData(data);
+  let sum=0;for(let i=0;i<data.length;i++){const v=(data[i]-128)/128;sum+=v*v;}
+  const rms=Math.sqrt(sum/data.length);          // 0..~0.5
+  const target=Math.min(1,rms*3.4);              // scale to 0..1
+  amp+=(target-amp)*0.4;                          // smooth
+  apply(amp);
+  raf=requestAnimationFrame(loop);
+}
+function ease(to){amp+=(to-amp)*0.2;apply(amp);if(Math.abs(amp-to)>0.01)requestAnimationFrame(()=>ease(to));}
+function apply(a){
+  // strong squash & stretch + bob + halo pulse = "talking" energy on any pose
+  document.documentElement.style.setProperty('--amp',a.toFixed(3));
+  const sx=1+a*0.10, sy=1-a*0.12, ty=-a*22;   // jaw-drop bounce illusion
+  saul.style.transform=`translateY(${ty}px) scale(${sx.toFixed(3)},${sy.toFixed(3)})`;
+  wrap.style.transform=`rotate(${((a-0.35)*2).toFixed(2)}deg)`;
+}
+apply(0);
+load(0,false);
+</script>
+</body>
+</html>

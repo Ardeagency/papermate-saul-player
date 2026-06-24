@@ -42,20 +42,25 @@ body{
 .ws-doodles{position:absolute;inset:0}
 .ws-doodle{position:absolute;color:#ffffff;opacity:.10}
 .ws-bokeh{position:absolute;border-radius:50%;filter:blur(40px);mix-blend-mode:screen}
-.ws-saul{position:absolute;bottom:-2%;filter:drop-shadow(0 30px 50px #00102e88);pointer-events:none}
-.ws-saul.left{left:3%;width:30vw;max-width:440px;transform:rotate(-4deg);animation:wsbobL 6s ease-in-out infinite}
-.ws-saul.right{right:2%;width:24vw;max-width:360px;transform:rotate(3deg) scaleX(-1);bottom:-6%;animation:wsbobR 7s ease-in-out infinite}
-@keyframes wsbobL{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(-2deg) translateY(-14px)}}
-@keyframes wsbobR{0%,100%{transform:rotate(3deg) scaleX(-1) translateY(0)}50%{transform:rotate(1deg) scaleX(-1) translateY(-12px)}}
-.ws-glow{position:absolute;left:50%;top:50%;width:560px;height:560px;transform:translate(-50%,-50%);
-  background:radial-gradient(closest-side,#3b86ff55,transparent);filter:blur(10px);pointer-events:none}
-.ws-vignette{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 50%,transparent 40%,#03102a99 100%);pointer-events:none}
+/* un solo Saúl grande a la izquierda; se mueve al reproducir (vía JS --amp) */
+.bigsaul-wrap{position:absolute;left:3%;bottom:0;height:94vh;max-height:1000px;aspect-ratio:1;
+  display:flex;align-items:flex-end;justify-content:center;z-index:5;pointer-events:none;
+  transform-origin:50% 96%;will-change:transform}
+.bigsaul{height:100%;width:auto;object-fit:contain;filter:drop-shadow(0 30px 50px #00102eaa);
+  transform-origin:50% 96%;will-change:transform;animation:idleBob 5s ease-in-out infinite}
+.bigsaul-wrap.talking .bigsaul{animation:none}
+@keyframes idleBob{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-16px) rotate(1.5deg)}}
+.bigsaul-glow{position:absolute;left:14%;bottom:6%;width:34vh;height:34vh;border-radius:50%;
+  background:radial-gradient(closest-side,#ffd76a55,transparent 70%);filter:blur(20px);
+  transform:scale(calc(1 + var(--amp,0)*0.4));opacity:calc(.35 + var(--amp,0)*.6);z-index:4;pointer-events:none}
+.ws-glow{position:absolute;left:62%;top:50%;width:520px;height:520px;transform:translate(-50%,-50%);
+  background:radial-gradient(closest-side,#3b86ff44,transparent);filter:blur(10px);pointer-events:none}
+.ws-vignette{position:absolute;inset:0;background:radial-gradient(120% 90% at 55% 50%,transparent 42%,#03102a99 100%);pointer-events:none}
 
 /* scene mode is toggled by JS (only on wide landscape viewports) */
 body.scene .webscene{display:block}
-body.scene .phone{z-index:5;box-shadow:0 30px 60px -20px #00081e99, 0 0 0 2px #0c1c3a;border-radius:38px}
+body.scene .phone{z-index:6;box-shadow:0 40px 80px -24px #00081ecc, 0 0 0 11px #0c0f1c, 0 0 0 13px #2b3050;border-radius:46px}
 body.scene .island{display:block}
-body.scene .ws-saul,body.scene .ws-bokeh,body.scene .ws-glow,body.scene .ws-doodles,body.scene .ws-vignette{display:none!important}
 
 /* ===================== DEVICE ===================== */
 .phone{
@@ -250,17 +255,16 @@ body.scene .ws-saul,body.scene .ws-bokeh,body.scene .ws-glow,body.scene .ws-dood
 </head>
 <body>
 
-<!-- ===== WEB SCENE (desktop): Paper Mate environment with Saúl, the phone sits in the composition ===== -->
+<!-- ===== WEB SCENE (desktop): un solo Saúl grande junto al celular, se mueve al reproducir ===== -->
 <div class="webscene" id="webscene">
-  <img class="scene-img" id="sceneImg" alt="">
   <div class="ws-glow"></div>
   <div class="ws-bokeh" style="width:220px;height:220px;top:12%;left:14%;background:#3b86ff55"></div>
   <div class="ws-bokeh" style="width:160px;height:160px;top:64%;left:24%;background:#ff5b7a44"></div>
   <div class="ws-bokeh" style="width:200px;height:200px;top:20%;right:12%;background:#1e63d655"></div>
   <div class="ws-bokeh" style="width:150px;height:150px;bottom:10%;right:18%;background:#ffd34d33"></div>
   <div class="ws-doodles" id="wsDoodles"></div>
-  <img class="ws-saul left" src="assets/saul_pose7.png" alt="Saúl">
-  <img class="ws-saul right" src="assets/saul_pose4.png" alt="Saúl">
+  <div class="bigsaul-glow"></div>
+  <div class="bigsaul-wrap" id="bigSaulWrap"><img class="bigsaul" id="bigSaul" src="assets/saul_pose1.png" alt="Saúl"></div>
   <div class="ws-vignette"></div>
 </div>
 
@@ -613,32 +617,43 @@ function makeSceneDoodles(){
     box.appendChild(d);
   }
 }
-/* ===== composite the real phone onto Saúl's on-screen phone (desktop) ===== */
-const SCENE={W:2752,H:1536, l:0.3307, t:0.1133, w:0.1871, h:0.7181}; // white-screen rect (fractions of the image)
-let sceneReady=false;
+/* ===== desktop: Saúl grande a la izquierda + celular a la derecha ===== */
 function layoutScene(){
-  const landscape = innerWidth>=1000 && (innerWidth/innerHeight)>=1.25; // scene only on wide landscape screens
-  if(!sceneReady||!landscape){phone.style.transform='';phone.style.position='';phone.style.left='';phone.style.top='';phone.style.width='';phone.style.height='';document.body.classList.remove('scene');return;}
+  const landscape = innerWidth>=1000 && (innerWidth/innerHeight)>=1.2; // escena solo en pantalla ancha
+  if(!landscape){phone.style.transform='';phone.style.position='';phone.style.left='';phone.style.top='';phone.style.width='';phone.style.height='';document.body.classList.remove('scene');return;}
   document.body.classList.add('scene');
-  const vw=innerWidth,vh=innerHeight;
-  const sc=Math.max(vw/SCENE.W,vh/SCENE.H);          // object-fit:cover mapping
-  const dW=SCENE.W*sc,dH=SCENE.H*sc,oX=(vw-dW)/2,oY=(vh-dH)/2;
-  const rx=oX+SCENE.l*dW, ry=oY+SCENE.t*dH, rw=SCENE.w*dW, rh=SCENE.h*dH; // white-screen box in viewport px
-  const cx=rx+rw/2, cy=ry+rh/2;                       // center of the screen rect
-  const BLEED=1.004;                                  // snug fit inside the drawn screen (no overflow)
-  const s=(rw*BLEED)/430;                             // scale our 430px-wide phone to fit
+  const target=Math.min(innerHeight*0.94, 920);
+  const s=target/920;
+  const phoneW=430*s;
+  // celular en la zona derecha, centrado verticalmente
+  const x=innerWidth*0.60 + (innerWidth*0.40 - phoneW)/2;
+  const y=(innerHeight - 920*s)/2;
   phone.style.position='fixed';phone.style.left='0';phone.style.top='0';
   phone.style.width='430px';phone.style.height='920px';phone.style.transformOrigin='top left';
-  phone.style.transform=`translate(${cx-215*s}px,${cy-460*s}px) scale(${s})`;
+  phone.style.transform=`translate(${x}px,${y}px) scale(${s})`;
 }
-(function loadScene(){
-  const img=document.getElementById('sceneImg');if(!img)return;
-  const probe=new Image();
-  probe.onload=()=>{img.src=probe.src;img.classList.add('on');sceneReady=true;layoutScene();};
-  probe.onerror=()=>{};
-  probe.src='assets/scene_bg.png?v='+Date.now();
-})();
 window.addEventListener('resize',layoutScene);
+
+/* ===== Saúl se mueve cuando reproduce (audio intacto, movimiento orgánico de "habla") ===== */
+const bigSaul=document.getElementById('bigSaul'), bigWrap=document.getElementById('bigSaulWrap');
+let rafS=null,ampS=0;
+function saulLoop(){
+  if(audio.paused){cancelAnimationFrame(rafS);saulSettle();return;}
+  const t=performance.now()/1000;
+  // amplitud orgánica: capas de senos a distintas frecuencias = sensación de hablar
+  let a=Math.abs(Math.sin(t*7.0))*0.55 + Math.abs(Math.sin(t*11.3+1.1))*0.3 + Math.abs(Math.sin(t*17.7+2.3))*0.15;
+  a=Math.min(1,a);
+  ampS+=(a-ampS)*0.35;
+  applySaul(ampS);
+  rafS=requestAnimationFrame(saulLoop);
+}
+function saulSettle(){ampS+=(0-ampS)*0.15;applySaul(ampS);if(Math.abs(ampS)>0.01)requestAnimationFrame(saulSettle);else bigWrap.classList.remove('talking');}
+function applySaul(a){
+  document.documentElement.style.setProperty('--amp',a.toFixed(3));
+  bigSaul.style.transform=`translateY(${(-a*24).toFixed(1)}px) scale(${(1+a*0.09).toFixed(3)},${(1-a*0.11).toFixed(3)}) rotate(${((a-0.35)*3).toFixed(2)}deg)`;
+}
+audio.addEventListener('play',()=>{bigWrap.classList.add('talking');cancelAnimationFrame(rafS);saulLoop();});
+audio.addEventListener('pause',()=>{cancelAnimationFrame(rafS);saulSettle();});
 
 /* init */
 buildQueue();makeDoodles();makeSceneDoodles();tick();setInterval(tick,10000);
